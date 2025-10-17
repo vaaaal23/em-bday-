@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8">
+  <title>Birthday quiz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka&display=swap" rel="stylesheet">
+
+  <style>
+
+   body {
+  background: linear-gradient(to right, #1c3cb0, #5e73e9);
+  font-family: 'Fredoka', sans-serif;
+  text-align: center;
+  padding: 50px;
+}
+
+    h1 {
+      color: #ff3399;
+    }
+
+    .question {
+      font-size: 1.5em;
+      margin-bottom: 30px;
+    }
+
+    .choices {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    .choices img {
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      border: 5px solid #fff;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .choices img:hover {
+      transform: scale(1.05);
+    }
+
+   #card {
+  opacity: 0;               /* start hidden */
+  transition: opacity 2s ease; /* smooth fade-in over 2 seconds (?) */
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  max-width: 500px;
+  margin: 0 auto;
+  pointer-events: none; /* prevents interaction while hidden */
+}
+
+/* when card is visible */
+#card.show {
+  opacity: 1;
+  pointer-events: auto; 
+}
+
+
+    #card h2 {
+      color: #58b4c8;
+    }
+
+    #card p {
+      font-size: 1.2em;
+    }
+  </style>
+</head>
+<body>
+
+  <h1> Birthday Quiz </h1>
+  <div class="question">
+    Which one is the Alpaca?
+  </div>
+
+  <div class="choices">
+
+    <img src= "alpaca2.jpeg" alt="Alpaca 2" onclick="checkAnswer(false)">
+    <img src= "alpaca.jpeg" alt="Alpaca 1" onclick="checkAnswer(true)">
+  </div>
+
+  <div id="card">
+    <h2> Happy Birthday!! </h2>
+    <p>Dear Emily,<br>
+    (they are actually both alpacas...) write carddd<br>
+    - val and hannah</p>
+  </div>
+
+  <script>
+
+  const wrongSound = new Audio('crickets.mp3'); // buzzer sound for wrong
+  const correctSound = new Audio('clapping.mp3'); // clapping sound for correct
+  const birthdaySong = new Audio('song.mp3'); // birthday song after clapping
+
+  function checkAnswer(isCorrect) {
+  if (isCorrect) {
+    correctSound.play();
+
+    correctSound.onended = function() {
+      document.getElementById('card').classList.add('show');
+      birthdaySong.play();
+    };
+  } else {
+    wrongSound.play();
+    alert("Oops! Try again...");
+  }
+  }
+</script>
+
+
+</body>
+</html>
