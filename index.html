@@ -1,22 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
   <meta charset="UTF-8">
-  <title>Birthday quiz</title>
+  <title>Birthday Quiz</title>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka&display=swap" rel="stylesheet">
-
   <style>
-
-   body {
-  background: linear-gradient(to right, #1c3cb0, #5e73e9);
-  font-family: 'Fredoka', sans-serif;
-  text-align: center;
-  padding: 50px;
-}
+    body {
+      background: linear-gradient(to right, #1c3cb0, #5e73e9);
+      font-family: 'Fredoka', sans-serif;
+      text-align: center;
+      padding: 50px;
+      color: white;
+    }
 
     h1 {
-      color: #ff3399;
+      color: #fa1ad8;
     }
 
     .question {
@@ -24,45 +22,55 @@
       margin-bottom: 30px;
     }
 
-    .choices {
-      display: flex;
-      justify-content: center;
-      gap: 30px;
-      margin-bottom: 40px;
-    }
-
-    .choices img {
-      width: 200px;
-      height: 200px;
+    .image-container img {
+      width: 300px;
+      height: 300px;
       object-fit: cover;
       border: 5px solid #fff;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      margin-bottom: 20px;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    button {
+      font-size: 1.2em;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 8px;
+      background-color: #ff3399;
+      color: white;
       cursor: pointer;
-      transition: transform 0.2s;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      transition: background-color 0.3s;
     }
 
-    .choices img:hover {
-      transform: scale(1.05);
+    button:hover {
+      background-color: #ff66b2;
     }
 
-   #card {
-  opacity: 0;               /* start hidden */
-  transition: opacity 2s ease; /* smooth fade-in over 2 seconds (?) */
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-  max-width: 500px;
-  margin: 0 auto;
-  pointer-events: none; /* prevents interaction while hidden */
-}
+    #card {
+      opacity: 0;
+      transition: opacity 2s ease;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      max-width: 500px;
+      margin: 0 auto;
+      pointer-events: none;
+      color: black;
+    }
 
-/* when card is visible */
-#card.show {
-  opacity: 1;
-  pointer-events: auto; 
-}
-
+    #card.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
 
     #card h2 {
       color: #58b4c8;
@@ -75,45 +83,91 @@
 </head>
 <body>
 
-  <h1> Birthday Quiz </h1>
-  <div class="question">
-    Which one is the Alpaca?
+  <h1>Birthday Quiz</h1>
+  <div class="question" id="question">Is this a llama or an alpaca?</div>
+
+  <div class="image-container">
+    <img id="animalImage" src="alpaca.jpeg" alt="Animal">
   </div>
 
-  <div class="choices">
-
-    <img src= "alpaca2.jpeg" alt="Alpaca 2" onclick="checkAnswer(false)">
-    <img src= "alpaca.jpeg" alt="Alpaca 1" onclick="checkAnswer(true)">
+  <div class="buttons">
+    <button onclick="makeGuess('llama')">Llama !</button>
+    <button onclick="makeGuess('alpaca')">Alpaca !</button>
   </div>
 
   <div id="card">
-    <h2> Happy Birthday!! </h2>
+    <h2>Happy Birthday!! 💌</h2>
     <p>Dear Emily,<br>
-    (they are actually both alpacas...) write carddd<br>
-    - val and hannah</p>
+      (they are actually all alpacas...)<br>
+      Happy birthday!<br>
+      – val and Hannah</p>
   </div>
 
   <script>
 
-  const wrongSound = new Audio('crickets.mp3'); // buzzer sound for wrong
-  const correctSound = new Audio('clapping.mp3'); // clapping sound for correct
-  const birthdaySong = new Audio('song.mp3'); // birthday song after clapping
+  const wrongSound1 = new Audio('the office.mp3'); //  round 1
+  const wrongSound2 = new Audio('no.mp3');   // round 2
+  const correctSound = new Audio('clapping.mp3');
+  const birthdaySong = new Audio('song.mp3');
+  birthdaySong.loop = true;
 
-  function checkAnswer(isCorrect) {
-  if (isCorrect) {
+  const rounds = [
+    {
+      image: 'alpaca.jpeg',
+      correct: 'alpaca',
+      wrongSound: wrongSound1
+    },
+    {
+      image: 'alpaca2.jpeg',
+      correct: 'alpaca',
+      wrongSound: wrongSound2
+    },
+    {
+      image: 'alpaca3.jpeg',
+      correct: 'alpaca' // final round - triggers clapping and mariachi 
+    
+    }
+  ];
+
+  let currentRound = 0;
+
+  function loadRound() {
+    document.getElementById('animalImage').src = rounds[currentRound].image;
+  }
+
+  function makeGuess(choice) {
+  const round = rounds[currentRound];
+  const isFinalRound = currentRound === rounds.length - 1;
+
+  if (isFinalRound && (choice === 'alpaca' || choice === 'llama')) {
     correctSound.play();
-
-    correctSound.onended = function() {
+    correctSound.onended = function () {
       document.getElementById('card').classList.add('show');
       birthdaySong.play();
     };
   } else {
-    wrongSound.play();
-    alert("Oops! Try again...");
+    // Play the specific wrong sound for this round
+    if (round.wrongSound) {
+      round.wrongSound.play();
+    }
+    alert("INCORRECT!! Try again...");
   }
+
+  currentRound++;
+
+  if (currentRound < rounds.length) {
+    setTimeout(() => {
+      loadRound();
+    }, 1000);
   }
+}
+
+
+  // start first round
+  loadRound();
 </script>
 
+  </script>
 
 </body>
 </html>
