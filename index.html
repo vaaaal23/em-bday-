@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Birthday Quiz</title>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     body {
       background: linear-gradient(to right, #1c3cb0, #5e73e9);
@@ -15,11 +16,21 @@
 
     h1 {
       color: #fa1ad8;
+      font-size: 3em;
+    }
+h2 {
+      color: #faef1a;
+      font-size: 2.2em;
+    }
+    .question {
+      font-size: 2em;
+      margin-bottom: 30px;
     }
 
-    .question {
-      font-size: 1.5em;
-      margin-bottom: 30px;
+    #progress {
+      font-size: 1.3em;
+      margin-bottom: 20px;
+      color: #ffccff;
     }
 
     .image-container img {
@@ -29,6 +40,12 @@
       border: 5px solid #fff;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
       margin-bottom: 20px;
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+
+    .image-container img.show {
+      opacity: 1;
     }
 
     .buttons {
@@ -39,19 +56,27 @@
     }
 
     button {
-      font-size: 1.2em;
-      padding: 15px 30px;
+      font-size: 1.5em;
+      padding: 15px 40px;
       border: none;
       border-radius: 8px;
       background-color: #ff3399;
       color: white;
       cursor: pointer;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      transition: background-color 0.3s;
+      transition: background-color 0.3s, transform 0.1s;
     }
 
     button:hover {
       background-color: #ff66b2;
+    }
+
+    button.correct {
+      background-color: #4CAF50 !important;
+    }
+
+    button.incorrect {
+      background-color: #f44336 !important;
     }
 
     #card {
@@ -74,6 +99,7 @@
 
     #card h2 {
       color: #58b4c8;
+      font-size: 2em;
     }
 
     #card p {
@@ -84,16 +110,22 @@
 <body>
 
   <h1>Birthday Quiz</h1>
+  <h2> If you get it right, you can read your card...</h2>
   <div class="question" id="question">Is this a llama or an alpaca?</div>
+  <div id="progress">Question 1 of 3</div>
 
   <div class="image-container">
     <img id="animalImage" src="alpaca.jpeg" alt="Animal">
   </div>
 
   <div class="buttons">
-    <button onclick="makeGuess('llama')">Llama !</button>
-    <button onclick="makeGuess('alpaca')">Alpaca !</button>
+    <button id="llamaBtn" onclick="makeGuess('llama')">Llama!</button>
+    <button id="alpacaBtn" onclick="makeGuess('alpaca')">Alpaca!</button>
   </div>
+
+<div id="scrollHint" style="display: none; font-size: 1.5em; margin-bottom: 20px; color: #ffffcc;">
+  ↓ Scroll down for card ↓
+</div>
 
   <div id="card">
     <h2>Happy Birthday!! 💌</h2>
@@ -107,80 +139,110 @@
 
       Happy Birthday Em!!! I can't believe you're 22 ... (taylor's version). I am so so glad I met you 
       in the Moorabin GYG delivery area last year when Anil (miss him) introduced you to me. 
-      You were the 'delivery coordinator' and were teaching me how to do reciepts HAHA. I love all 
-      our litte adventures, acai dates, brunch dates, tiramisu iced latte dates, my beautiful gf SONDER trivia night dates, 
+      You were the 'delivery coordinator' and were teaching me how to do receipts HAHA. I love all 
+      our little adventures, acai dates, brunch dates, tiramisu iced latte dates, my beautiful gf SONDER trivia night dates, 
       and everything else with you. I'm really proud of you and how adulty and independent and cool you are, 
-      and how much you've grown since I met you. 
-      I hope you have the best day and I'm excited for tonight hehehe. Can we pls go to trivia again soon. <br>
+      and how much you've grown since I met you. I appreciate our friendship sm, even when I was overseas and 
+      couldn't see you for 6 months :( I loved the random reels we sent each other, boost/ weekly vlogs, phone calls 
+      where i could hear Mia quietly giggling next to you, and our half-finished fleabag marathon (we tried). And also how as soon as i sent 
+      anything on insta it would automatically appear as 'seen'. Ur like an omnipresent being. 
+      Anyway I hope you have the best day and I'm excited for tonight hehehe. Can we pls go to trivia again soon. <br>
       - LOVE, VAL 
     </p>
-      
   </div>
 
   <script>
+    const wrongSound1 = new Audio('the office.mp3');
+    const wrongSound2 = new Audio('no.mp3');
+    const correctSound = new Audio('clapping.mp3');
+    const birthdaySong = new Audio('song.mp3');
+    birthdaySong.loop = true;
 
-  const wrongSound1 = new Audio('the office.mp3'); //  round 1
-  const wrongSound2 = new Audio('no.mp3');   // round 2
-  const correctSound = new Audio('clapping.mp3');
-  const birthdaySong = new Audio('song.mp3');
-  birthdaySong.loop = true;
+    const rounds = [
+      { image: 'alpaca.jpeg', wrongSound: wrongSound1 },
+      { image: 'alpaca2.jpeg', wrongSound: wrongSound2 },
+      { image: 'alpaca3.jpeg' } // final round
+    ];
 
-  const rounds = [
-    {
-      image: 'alpaca.jpeg',
-      correct: 'alpaca',
-      wrongSound: wrongSound1
-    },
-    {
-      image: 'alpaca2.jpeg',
-      correct: 'alpaca',
-      wrongSound: wrongSound2
-    },
-    {
-      image: 'alpaca3.jpeg',
-      correct: 'alpaca' // final round - triggers clapping and mariachi 
-    
+    let currentRound = 0;
+
+    const image = document.getElementById('animalImage');
+    const progress = document.getElementById('progress');
+    const llamaBtn = document.getElementById('llamaBtn');
+    const alpacaBtn = document.getElementById('alpacaBtn');
+
+    function updateProgress() {
+      progress.textContent = `Question ${currentRound + 1} of ${rounds.length}`;
     }
-  ];
 
-  let currentRound = 0;
+    function loadRound() {
+      image.classList.remove('show');
+      setTimeout(() => {
+        image.src = rounds[currentRound].image;
+        updateProgress();
+        setTimeout(() => {
+          image.classList.add('show');
+        }, 100);
+      }, 300);
+    }
 
-  function loadRound() {
-    document.getElementById('animalImage').src = rounds[currentRound].image;
-  }
+    function resetButtons() {
+      llamaBtn.classList.remove('correct', 'incorrect');
+      alpacaBtn.classList.remove('correct', 'incorrect');
+      llamaBtn.disabled = false;
+      alpacaBtn.disabled = false;
+    }
 
-  function makeGuess(choice) {
-  const round = rounds[currentRound];
+    function makeGuess(choice) {
   const isFinalRound = currentRound === rounds.length - 1;
+  const round = rounds[currentRound];
+  const clickedBtn = choice === 'llama' ? llamaBtn : alpacaBtn;
 
-  if (isFinalRound && (choice === 'alpaca' || choice === 'llama')) {
+  // disable buttons briefly 
+  llamaBtn.disabled = true;
+  alpacaBtn.disabled = true;
+
+  if (isFinalRound) {
+    // final round, any choice is correct
+    clickedBtn.classList.add('correct');
     correctSound.play();
-    correctSound.onended = function () {
+    correctSound.onended = () => {
       document.getElementById('card').classList.add('show');
+document.getElementById('scrollHint').style.display = 'block';
+
       birthdaySong.play();
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: ['#fa1ad8', '#ff3399', '#ffffff', '#5e73e9']
+      });
     };
-  } else {
-    // Play the specific wrong sound for this round
-    if (round.wrongSound) {
-      round.wrongSound.play();
-    }
-    alert("INCORRECT!! Try again...");
+    return;
   }
 
-  currentRound++;
+  // any choice is wrong for round 1 and 2
+  if (round.wrongSound) {
+    round.wrongSound.play();
+  }
+  clickedBtn.classList.add('incorrect');
+  alert("INCORRECT!!");
 
-  if (currentRound < rounds.length) {
-    setTimeout(() => {
+  // moves to next round , short delay
+  setTimeout(() => {
+    clickedBtn.classList.remove('incorrect');
+    currentRound++;
+    if (currentRound < rounds.length) {
       loadRound();
-    }, 1000);
-  }
+    }
+    llamaBtn.disabled = false;
+    alpacaBtn.disabled = false;
+  }, 1000);
 }
 
 
-  // start first round
-  loadRound();
-</script>
-
+    loadRound();
+    image.classList.add('show');
   </script>
 
 </body>
